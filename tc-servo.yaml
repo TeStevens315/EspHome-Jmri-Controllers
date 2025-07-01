@@ -1,57 +1,66 @@
-# ESPHome YAML for HO Model Railroad Turnout Control with RC Servos
-#
-# Possible ESP32 pins for servos (check your board!):
-# 2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33
-# Avoid using pins 0, 1, 3, 6-11, 34-39 for servos.
-
 esphome:
   name: tc-servo
-  friendly_name: tc-servo
-
-esp32:
-  board: esp32dev
-  framework:
-    type: esp-idf
-
-# Enable Home Assistant API
-api:
-  encryption:
-    key: "oNFR5KJernOcbKaaOoPGW0ScnBKuKoX5KrDlv1FMmhU="
-
-ota:
-  - platform: esphome
-    password: "7a22ca8837414b4866504f9d7afaaba6"
-
-# Enable logging
-logger:
-
-substitutions:
-  controller_num: "1" # X in TOS-X-N
-  num_turnouts: "2" # N = number of turnouts (change as needed)
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
-  mqtt_broker: !secret mqtt_broker
-  mqtt_username: !secret mqtt_username
-  mqtt_password: !secret mqtt_password
-
-esphome:
-  name: tos-${controller_num}-${num_turnouts}
+  friendly_name: TC-Servo
 
 esp32:
   board: esp32dev
   framework:
     type: arduino
 
-wifi:
-  ssid: ${wifi_ssid}
-  password: ${wifi_password}
+# Enable logging
+logger:
 
-mqtt:
-  broker: ${mqtt_broker_home}
-  username: ${mqtt_username}
-  password: ${mqtt_password}
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "nDo0BcHsYs/IsNrF1JtHRrPNGzGAe0LxemlwVZoDN7k="
+
+ota:
+  - platform: esphome
+    password: "bf1ded303b6bdaa4994bb0f7b9da76af"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Tc-Servo Fallback Hotspot"
+    password: "iIDTqknPyamg"
 
 captive_portal:
+
+
+  # ESPHome YAML for HO Model Railroad Turnout Control with RC Servos
+#
+# Possible ESP32 pins for servos (check your board!):
+# 2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33
+# Avoid using pins 0, 1, 3, 6-11, 34-39 for servos.
+
+# esphome:
+#   name: tc-servo
+#   friendly_name: tc-servo
+
+# esp32:
+#   board: esp32dev
+#   framework:
+#     type: esp-idf
+
+
+
+substitutions:
+  controller_num: "1" # X in TOS-X-N
+  num_turnouts: "2" # N = number of turnouts (change as needed)
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+
+
+
+
+
 
 # Example for 2 turnouts, add more as needed
 # Each turnout has:
@@ -65,11 +74,11 @@ globals:
   - id: turnout_1_max_angle
     type: int
     restore_value: true
-    initial_value: "120"
+    initial_value: "180"
   - id: turnout_1_min_angle
     type: int
     restore_value: true
-    initial_value: "60"
+    initial_value: "0"
   - id: turnout_1_angle
     type: int
     restore_value: false
@@ -77,11 +86,11 @@ globals:
   - id: turnout_2_max_angle
     type: int
     restore_value: true
-    initial_value: "120"
+    initial_value: "180"
   - id: turnout_2_min_angle
     type: int
     restore_value: true
-    initial_value: "60"
+    initial_value: "0"
   - id: turnout_2_angle
     type: int
     restore_value: false
@@ -117,14 +126,20 @@ switch:
     turn_on_action:
       - lambda: |-
           id(turnout_1_angle) = id(turnout_1_max_angle);
-          id(turnout_1).write(id(turnout_1_angle));
+          id(turnout_1).write(id(turnout_1_angle) / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_1).detach();
       - mqtt.publish:
           topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/state"
           payload: "THROWN"
     turn_off_action:
       - lambda: |-
           id(turnout_1_angle) = id(turnout_1_min_angle);
-          id(turnout_1).write(id(turnout_1_angle));
+          id(turnout_1).write(id(turnout_1_angle) / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_1).detach();
       - mqtt.publish:
           topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/state"
           payload: "CLOSED"
@@ -144,14 +159,20 @@ switch:
     turn_on_action:
       - lambda: |-
           id(turnout_2_angle) = id(turnout_2_max_angle);
-          id(turnout_2).write(id(turnout_2_angle));
+          id(turnout_2).write(id(turnout_2_angle) / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_2).detach();
       - mqtt.publish:
           topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/state"
           payload: "THROWN"
     turn_off_action:
       - lambda: |-
           id(turnout_2_angle) = id(turnout_2_min_angle);
-          id(turnout_2).write(id(turnout_2_angle));
+          id(turnout_2).write(id(turnout_2_angle) / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_2).detach();
       - mqtt.publish:
           topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/state"
           payload: "CLOSED"
@@ -176,7 +197,10 @@ number:
     set_action:
       - lambda: |-
           id(turnout_1_angle) = x;
-          id(turnout_1).write(x);
+          id(turnout_1).write(x / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_1).detach();
   - platform: template
     name: "Turnout 2 Angle"
     id: turnout_2_angle_slider
@@ -187,7 +211,10 @@ number:
     set_action:
       - lambda: |-
           id(turnout_2_angle) = x;
-          id(turnout_2).write(x);
+          id(turnout_2).write(x / 180.0);
+      - delay: 500ms
+      - lambda: |-
+          id(turnout_2).detach();
 
 button:
   # Exposed to Home Assistant for calibration
@@ -219,4 +246,49 @@ button:
 # All variables for max/min angles are saved to flash (restore_value: true).
 # All MQTT topics are in the form TOS-X-N/turnout_N/set and TOS-X-N/turnout_N/state.
 # You can control and calibrate via MQTT or Home Assistant dashboard.
+
+sensor:
+  - platform: template
+    name: "Turnout 1 Current Angle"
+    id: turnout_1_current_angle_sensor
+    lambda: |-
+      return id(turnout_1_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+  - platform: template
+    name: "Turnout 1 Max Angle"
+    id: turnout_1_max_angle_sensor
+    lambda: |-
+      return id(turnout_1_max_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+  - platform: template
+    name: "Turnout 1 Min Angle"
+    id: turnout_1_min_angle_sensor
+    lambda: |-
+      return id(turnout_1_min_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+  - platform: template
+    name: "Turnout 2 Current Angle"
+    id: turnout_2_current_angle_sensor
+    lambda: |-
+      return id(turnout_2_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+  - platform: template
+    name: "Turnout 2 Max Angle"
+    id: turnout_2_max_angle_sensor
+    lambda: |-
+      return id(turnout_2_max_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+  - platform: template
+    name: "Turnout 2 Min Angle"
+    id: turnout_2_min_angle_sensor
+    lambda: |-
+      return id(turnout_2_min_angle);
+    update_interval: 1s
+    unit_of_measurement: "°"
+
 
