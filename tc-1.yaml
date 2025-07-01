@@ -1,0 +1,214 @@
+# TURNOUT-CONTROL-1.yml
+substitutions:
+  esp_id: '1'
+  turnout_pulse_ms: '1000ms'
+
+esphome:
+  name: tc-${esp_id}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+ota:
+  password: !secret ota_password
+  platform: esphome
+
+wifi:
+  networks:
+    - ssid: !secret wifi_ssid_iot
+      password: !secret wifi_password_iot
+    - ssid: !secret wifi_ssid_santafe
+      password: !secret wifi_password_santafe
+  ap:
+    ssid: !secret fallback_ssid
+    password: !secret fallback_password
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+
+  on_message:
+    - topic: 'track/turnout/TO-1-1'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_1_a).turn_on();
+              id(turnout_1_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_1_a).turn_off();
+              id(turnout_1_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_1_a
+        - output.turn_off: turnout_1_b
+
+    - topic: 'track/turnout/TO-1-2'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_2_a).turn_on();
+              id(turnout_2_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_2_a).turn_off();
+              id(turnout_2_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_2_a
+        - output.turn_off: turnout_2_b
+
+    - topic: 'track/turnout/TO-1-3'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_3_a).turn_on();
+              id(turnout_3_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_3_a).turn_off();
+              id(turnout_3_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_3_a
+        - output.turn_off: turnout_3_b
+
+    - topic: 'track/turnout/TO-1-4'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_4_a).turn_on();
+              id(turnout_4_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_4_a).turn_off();
+              id(turnout_4_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_4_a
+        - output.turn_off: turnout_4_b
+
+    - topic: 'track/turnout/TO-1-5'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_5_a).turn_on();
+              id(turnout_5_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_5_a).turn_off();
+              id(turnout_5_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_5_a
+        - output.turn_off: turnout_5_b
+
+    - topic: 'track/turnout/TO-1-6'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_6_a).turn_on();
+              id(turnout_6_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_6_a).turn_off();
+              id(turnout_6_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_6_a
+        - output.turn_off: turnout_6_b
+
+    - topic: 'track/turnout/TO-1-7'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_7_a).turn_on();
+              id(turnout_7_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_7_a).turn_off();
+              id(turnout_7_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_7_a
+        - output.turn_off: turnout_7_b
+
+    - topic: 'track/turnout/TO-1-8'
+      then:
+        - lambda: |-
+            auto payload = x.c_str();
+            if (strcmp(payload, "THROWN") == 0) {
+              id(turnout_8_a).turn_on();
+              id(turnout_8_b).turn_off();
+            } else if (strcmp(payload, "CLOSED") == 0) {
+              id(turnout_8_a).turn_off();
+              id(turnout_8_b).turn_on();
+            }
+        - delay: ${turnout_pulse_ms}
+        - output.turn_off: turnout_8_a
+        - output.turn_off: turnout_8_b
+
+logger:
+  level: DEBUG
+
+captive_portal:
+
+output:
+  - platform: gpio
+    id: turnout_1_a
+    pin: GPIO19
+  - platform: gpio
+    id: turnout_1_b
+    pin: GPIO18
+
+  - platform: gpio
+    id: turnout_2_a
+    pin: GPIO5
+  - platform: gpio
+    id: turnout_2_b
+    pin: GPIO17
+
+  - platform: gpio
+    id: turnout_3_a
+    pin: GPIO16
+  - platform: gpio
+    id: turnout_3_b
+    pin: GPIO4
+
+  - platform: gpio
+    id: turnout_4_a
+    pin: GPIO2
+  - platform: gpio
+    id: turnout_4_b
+    pin: GPIO15
+
+  - platform: gpio
+    id: turnout_5_a
+    pin: GPIO32
+  - platform: gpio
+    id: turnout_5_b
+    pin: GPIO33
+
+  - platform: gpio
+    id: turnout_6_a
+    pin: GPIO25
+  - platform: gpio
+    id: turnout_6_b
+    pin: GPIO26
+
+  - platform: gpio
+    id: turnout_7_a
+    pin: GPIO27
+  - platform: gpio
+    id: turnout_7_b
+    pin: GPIO14
+
+  - platform: gpio
+    id: turnout_8_a
+    pin: GPIO12
+  - platform: gpio
+    id: turnout_8_b
+    pin: GPIO13
