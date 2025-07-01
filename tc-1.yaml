@@ -1,6 +1,6 @@
 # TURNOUT-CONTROL-1.yml
 #
-# This ESPHome config controls 8 model railroad turnouts using relays or H-bridges.
+# This ESPHome config controls 8 model railroad turnouts using l298 H-bridges.
 # Each turnout is controlled by two GPIO outputs (A and B) and triggered by MQTT messages.
 #
 # MQTT topics: track/turnout/TO-1-N (N=1..8), payload: 'THROWN' or 'CLOSED'
@@ -10,10 +10,17 @@
 # Usage:
 #  - Send MQTT message to topic 'track/turnout/TO-1-N' with payload 'THROWN' or 'CLOSED'.
 #  - Each command pulses the turnout for the time set in 'turnout_pulse_ms'.
+
+#pin assignments
+# L2981 = 19R, 18B, 5Y, 17W
+# L2982 = 16R, 4B, SPACE, 2Y, 15W    #space means the 4 wire connector needs to have one of the pins split off since the pins are adjacent.
+# L2983 = 32R, 33B, 25Y, 26W
+# L2984 = 27R, 14B, 12Y,13W
+
 #
 substitutions:
-  esp_id: '1'  # Controller number
-  turnout_pulse_ms: '1000ms'  # Pulse duration for turnout coil
+  esp_id: "1" # Controller number
+  turnout_pulse_ms: "1000ms" # Pulse duration for turnout coil
 
 esphome:
   name: tc-${esp_id}
@@ -45,7 +52,7 @@ mqtt:
   # Listen for turnout commands on MQTT and operate outputs accordingly
   on_message:
     # Turnout 1
-    - topic: 'track/turnout/TO-1-1'
+    - topic: "track/turnout/TO-1-1"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -60,7 +67,7 @@ mqtt:
         - output.turn_off: turnout_1_a
         - output.turn_off: turnout_1_b
     # Turnout 2
-    - topic: 'track/turnout/TO-1-2'
+    - topic: "track/turnout/TO-1-2"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -75,7 +82,7 @@ mqtt:
         - output.turn_off: turnout_2_a
         - output.turn_off: turnout_2_b
     # Turnout 3
-    - topic: 'track/turnout/TO-1-3'
+    - topic: "track/turnout/TO-1-3"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -90,7 +97,7 @@ mqtt:
         - output.turn_off: turnout_3_a
         - output.turn_off: turnout_3_b
     # Turnout 4
-    - topic: 'track/turnout/TO-1-4'
+    - topic: "track/turnout/TO-1-4"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -105,7 +112,7 @@ mqtt:
         - output.turn_off: turnout_4_a
         - output.turn_off: turnout_4_b
     # Turnout 5
-    - topic: 'track/turnout/TO-1-5'
+    - topic: "track/turnout/TO-1-5"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -120,7 +127,7 @@ mqtt:
         - output.turn_off: turnout_5_a
         - output.turn_off: turnout_5_b
     # Turnout 6
-    - topic: 'track/turnout/TO-1-6'
+    - topic: "track/turnout/TO-1-6"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -135,7 +142,7 @@ mqtt:
         - output.turn_off: turnout_6_a
         - output.turn_off: turnout_6_b
     # Turnout 7
-    - topic: 'track/turnout/TO-1-7'
+    - topic: "track/turnout/TO-1-7"
       then:
         - lambda: |-
             auto payload = x.c_str();
@@ -150,7 +157,7 @@ mqtt:
         - output.turn_off: turnout_7_a
         - output.turn_off: turnout_7_b
     # Turnout 8
-    - topic: 'track/turnout/TO-1-8'
+    - topic: "track/turnout/TO-1-8"
       then:
         - lambda: |-
             auto payload = x.c_str();
