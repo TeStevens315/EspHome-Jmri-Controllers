@@ -1,0 +1,203 @@
+# ESPHome YAML for HO Model Railroad Turnout Control with RC Servos
+#
+# Possible ESP32 pins for servos (check your board!):
+# 2, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33
+# Avoid using pins 0, 1, 3, 6-11, 34-39 for servos.
+
+substitutions:
+  controller_num: "1" # X in TOS-X-N
+  num_turnouts: "2" # N = number of turnouts (change as needed)
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  mqtt_broker: !secret mqtt_broker
+  mqtt_username: !secret mqtt_username
+  mqtt_password: !secret mqtt_password
+
+esphome:
+  name: tos-${controller_num}-${num_turnouts}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+
+mqtt:
+  broker: ${mqtt_broker_home}
+  username: ${mqtt_username}
+  password: ${mqtt_password}
+
+logger:
+
+ota:
+
+# Example for 2 turnouts, add more as needed
+# Each turnout has:
+#   - A servo
+#   - A switch (MQTT)
+#   - Angle slider (MQTT)
+#   - Set Max/Min buttons (MQTT)
+#   - Max/Min angle variables (saved)
+
+globals:
+  - id: turnout_1_max_angle
+    type: int
+    restore_value: true
+    initial_value: "120"
+  - id: turnout_1_min_angle
+    type: int
+    restore_value: true
+    initial_value: "60"
+  - id: turnout_1_angle
+    type: int
+    restore_value: false
+    initial_value: "90"
+  - id: turnout_2_max_angle
+    type: int
+    restore_value: true
+    initial_value: "120"
+  - id: turnout_2_min_angle
+    type: int
+    restore_value: true
+    initial_value: "60"
+  - id: turnout_2_angle
+    type: int
+    restore_value: false
+    initial_value: "90"
+
+output:
+  - platform: ledc
+    id: turnout_1_servo
+    pin: 18
+    frequency: 50 Hz
+  - platform: ledc
+    id: turnout_2_servo
+    pin: 19
+    frequency: 50 Hz
+
+servo:
+  - id: turnout_1
+    output: turnout_1_servo
+    min_level: 2.5%
+    max_level: 12.5%
+  - id: turnout_2
+    output: turnout_2_servo
+    min_level: 2.5%
+    max_level: 12.5%
+
+# MQTT switches and controls for each turnout
+switch:
+  - platform: template
+    name: "TOS-${controller_num}-${num_turnouts} Turnout 1"
+    id: turnout_1_switch
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          id(turnout_1_angle) = id(turnout_1_max_angle);
+          id(turnout_1).write(id(turnout_1_angle));
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/state"
+          payload: "THROWN"
+    turn_off_action:
+      - lambda: |-
+          id(turnout_1_angle) = id(turnout_1_min_angle);
+          id(turnout_1).write(id(turnout_1_angle));
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/state"
+          payload: "CLOSED"
+    on_turn_on:
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/set"
+          payload: "THROWN"
+    on_turn_off:
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_1/set"
+          payload: "CLOSED"
+  - platform: template
+    name: "TOS-${controller_num}-${num_turnouts} Turnout 2"
+    id: turnout_2_switch
+    optimistic: true
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - lambda: |-
+          id(turnout_2_angle) = id(turnout_2_max_angle);
+          id(turnout_2).write(id(turnout_2_angle));
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/state"
+          payload: "THROWN"
+    turn_off_action:
+      - lambda: |-
+          id(turnout_2_angle) = id(turnout_2_min_angle);
+          id(turnout_2).write(id(turnout_2_angle));
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/state"
+          payload: "CLOSED"
+    on_turn_on:
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/set"
+          payload: "THROWN"
+    on_turn_off:
+      - mqtt.publish:
+          topic: "TOS-${controller_num}-${num_turnouts}/turnout_2/set"
+          payload: "CLOSED"
+
+number:
+  # Exposed to Home Assistant for calibration
+  - platform: template
+    name: "Turnout 1 Angle"
+    id: turnout_1_angle_slider
+    min_value: 0
+    max_value: 180
+    step: 1
+    optimistic: true
+    set_action:
+      - lambda: |-
+          id(turnout_1_angle) = x;
+          id(turnout_1).write(x);
+  - platform: template
+    name: "Turnout 2 Angle"
+    id: turnout_2_angle_slider
+    min_value: 0
+    max_value: 180
+    step: 1
+    optimistic: true
+    set_action:
+      - lambda: |-
+          id(turnout_2_angle) = x;
+          id(turnout_2).write(x);
+
+button:
+  # Exposed to Home Assistant for calibration
+  - platform: template
+    name: "Turnout 1 Set Max"
+    on_press:
+      - lambda: |-
+          id(turnout_1_max_angle) = id(turnout_1_angle);
+    icon: "mdi:arrow-up-bold"
+  - platform: template
+    name: "Turnout 1 Set Min"
+    on_press:
+      - lambda: |-
+          id(turnout_1_min_angle) = id(turnout_1_angle);
+    icon: "mdi:arrow-down-bold"
+  - platform: template
+    name: "Turnout 2 Set Max"
+    on_press:
+      - lambda: |-
+          id(turnout_2_max_angle) = id(turnout_2_angle);
+    icon: "mdi:arrow-up-bold"
+  - platform: template
+    name: "Turnout 2 Set Min"
+    on_press:
+      - lambda: |-
+          id(turnout_2_min_angle) = id(turnout_2_angle);
+    icon: "mdi:arrow-down-bold"
+# To add more turnouts, duplicate the relevant blocks and increment the numbers.
+# All variables for max/min angles are saved to flash (restore_value: true).
+# All MQTT topics are in the form TOS-X-N/turnout_N/set and TOS-X-N/turnout_N/state.
+# You can control and calibrate via MQTT or Home Assistant dashboard.
+
