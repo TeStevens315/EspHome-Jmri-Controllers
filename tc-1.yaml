@@ -1,7 +1,19 @@
 # TURNOUT-CONTROL-1.yml
+#
+# This ESPHome config controls 8 model railroad turnouts using relays or H-bridges.
+# Each turnout is controlled by two GPIO outputs (A and B) and triggered by MQTT messages.
+#
+# MQTT topics: track/turnout/TO-1-N (N=1..8), payload: 'THROWN' or 'CLOSED'
+#
+# Hardware: ESP32 (32-pin), outputs mapped to GPIO pins below.
+#
+# Usage:
+#  - Send MQTT message to topic 'track/turnout/TO-1-N' with payload 'THROWN' or 'CLOSED'.
+#  - Each command pulses the turnout for the time set in 'turnout_pulse_ms'.
+#
 substitutions:
-  esp_id: '1'
-  turnout_pulse_ms: '1000ms'
+  esp_id: '1'  # Controller number
+  turnout_pulse_ms: '1000ms'  # Pulse duration for turnout coil
 
 esphome:
   name: tc-${esp_id}
@@ -30,7 +42,9 @@ mqtt:
   username: !secret mqtt_username
   password: !secret mqtt_password
 
+  # Listen for turnout commands on MQTT and operate outputs accordingly
   on_message:
+    # Turnout 1
     - topic: 'track/turnout/TO-1-1'
       then:
         - lambda: |-
@@ -45,7 +59,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_1_a
         - output.turn_off: turnout_1_b
-
+    # Turnout 2
     - topic: 'track/turnout/TO-1-2'
       then:
         - lambda: |-
@@ -60,7 +74,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_2_a
         - output.turn_off: turnout_2_b
-
+    # Turnout 3
     - topic: 'track/turnout/TO-1-3'
       then:
         - lambda: |-
@@ -75,7 +89,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_3_a
         - output.turn_off: turnout_3_b
-
+    # Turnout 4
     - topic: 'track/turnout/TO-1-4'
       then:
         - lambda: |-
@@ -90,7 +104,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_4_a
         - output.turn_off: turnout_4_b
-
+    # Turnout 5
     - topic: 'track/turnout/TO-1-5'
       then:
         - lambda: |-
@@ -105,7 +119,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_5_a
         - output.turn_off: turnout_5_b
-
+    # Turnout 6
     - topic: 'track/turnout/TO-1-6'
       then:
         - lambda: |-
@@ -120,7 +134,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_6_a
         - output.turn_off: turnout_6_b
-
+    # Turnout 7
     - topic: 'track/turnout/TO-1-7'
       then:
         - lambda: |-
@@ -135,7 +149,7 @@ mqtt:
         - delay: ${turnout_pulse_ms}
         - output.turn_off: turnout_7_a
         - output.turn_off: turnout_7_b
-
+    # Turnout 8
     - topic: 'track/turnout/TO-1-8'
       then:
         - lambda: |-
@@ -156,6 +170,7 @@ logger:
 
 captive_portal:
 
+# Output pin mapping for each turnout coil (A/B)
 output:
   - platform: gpio
     id: turnout_1_a
